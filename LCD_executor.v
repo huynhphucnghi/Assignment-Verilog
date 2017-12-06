@@ -259,6 +259,44 @@ always @(posedge CLK) begin
 			end		
 		end
 		//---------------------------------------------------------------------------------------
+		6: begin//----------------------------- SET CGRAM ADDRESS -------------------------------------
+			LCD_RS				<=	1'b0;						
+			LCD_RW				<=	1'b0;						
+			RDY					<= 1'b0;						
+			if(SUBSTATE==0)begin	 		
+				LCD_E				<=	1'b0;						
+				LCD_DB 			<=	LCD_DB;
+				STATE				<=	STATE;
+				SUBSTATE			<=	1;
+			end			
+			if(SUBSTATE==1)begin				
+				LCD_E				<=	1'b1;						
+				LCD_DB 			<= SET_CGRAM_ADD;					
+				if(!flag_250ns) begin						
+					SUBSTATE		<=	SUBSTATE;				
+					flag_rst		<=	1'b0;
+				end
+				else begin 				
+					SUBSTATE		<=	SUBSTATE+1;				
+					flag_rst		<=	1'b1;
+				end
+			end
+			if(SUBSTATE==2)begin
+				LCD_E				<=	1'b0;						
+				LCD_DB 			<= LCD_DB;					
+				if(!flag_42us) begin					
+					STATE			<=	STATE;					
+					SUBSTATE		<=	SUBSTATE;				
+					flag_rst		<=	1'b0; 								
+				end
+				else begin 		
+					STATE			<=	15;
+					SUBSTATE		<=	0;
+					flag_rst		<=	1'b1;
+				end
+			end		
+		end
+		//---------------------------------------------------------------------------------------
 		7: begin//----------------------------- SET DDRAM ADDRESS -------------------------------------
 			LCD_RS				<=	1'b0;						
 			LCD_RW				<=	1'b0;						
@@ -318,6 +356,7 @@ always @(posedge CLK) begin
 			else case(OP)
 				0: STATE <= 4;		// clear display
 				1: STATE <= 5;		// write data
+				2: STATE <= 6;		// set CGRAM address
 				3: STATE <= 7;		// set DDRAM address
 				4: STATE <= 8;		// wait 2 seconds
 				default: STATE <= STATE;
