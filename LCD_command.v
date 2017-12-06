@@ -1,11 +1,6 @@
-module LCD_controller(
-	clk, rst, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy
+module LCD_command(
+	output reg [11:0] DATA, input [31:0] _i
 );
-	input clk, rst;
-	output LCD_RS, LCD_RW, LCD_EN, rdy;
-	output [7:0] LCD_DATA;
-	
-	// ASCII code
 	parameter [7:0]
 		khoang_trang = 8'b00100000,		
 		cham_thang = 8'b00100001,		
@@ -98,32 +93,39 @@ module LCD_controller(
 		x = 8'b01111000,
 		y = 8'b01111001,
 		z = 8'b01111010;
-		
+	
 	parameter [3:0] 
 		clear = 4'b0000,
 		write = 4'b0001,
 		setad = 4'b0011,
 		wait2 = 4'b0100;
-	parameter [9:0] stop_ = 10'b1111111111;
-		
-	wire [11:0] DATA;
-	reg enb = 1;
-	reg [3:0] op = 1;
-	reg [7:0] data;
-	reg [31:0] counter = 0;
-	
-	LCD_executor lcd(clk, enb, rst, op, data, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy);
-	LCD_command command(DATA, counter);
-	
-	
-	always@(posedge rdy) begin
-		if(counter != 22) begin
-			counter <= counter + 1;
-			data <= DATA[7:0];
-			op <= DATA[11:8];
-		end
-		else enb <= 0;
+
+	always@(_i) begin
+		case(_i)
+		0:		DATA 	= {setad, 8'd04};
+		1: 	DATA 	= {write, _W};
+		2: 	DATA 	= {write, e};
+		3: 	DATA 	= {write, l};
+		4: 	DATA 	= {write, c};
+		5: 	DATA 	= {write, o};
+		6: 	DATA 	= {write, m};
+		7: 	DATA 	= {write, e};
+		8: 	DATA 	= {write, cham_thang};
+		9: 	DATA 	= {setad, 8'd43};
+		10: 	DATA 	= {write, _L};
+		11: 	DATA 	= {write, e};
+		12: 	DATA 	= {write, t};
+		13: 	DATA 	= {write, ngoac_don};
+		14: 	DATA 	= {write, s};
+		15: 	DATA 	= {write, khoang_trang};
+		16: 	DATA 	= {write, p};
+		17: 	DATA 	= {write, l};
+		18: 	DATA 	= {write, a};
+		19: 	DATA 	= {write, y};
+		20: 	DATA 	= {wait2, 8'd00};
+		21: 	DATA 	= {clear, 8'd00};
+		default: DATA 	= {clear, 8'd00};
+		endcase
 	end
 	
-
 endmodule
