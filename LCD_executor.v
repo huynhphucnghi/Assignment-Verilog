@@ -22,7 +22,7 @@ reg LCD_E=0;
 // Set flags
 wire flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s;
 reg flag_rst = 1;
-flag_controller(CLK, flag_rst, flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s);
+flag_controller flags(CLK, flag_rst, flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s);
 
 
 
@@ -350,7 +350,10 @@ always @(posedge CLK) begin
 				flag_rst		<=	1'b1;
 			end	
 		end
-		100: begin
+		9: begin
+			LCD_RS				<=	LCD_RS;						
+			LCD_RW				<=	LCD_RW;						
+			RDY					<= 1'b0;
 			if(RST==0)
 				STATE <= 0;
 			else case(OP)
@@ -359,6 +362,7 @@ always @(posedge CLK) begin
 				2: STATE <= 6;		// set CGRAM address
 				3: STATE <= 7;		// set DDRAM address
 				4: STATE <= 8;		// wait 2 seconds
+				15: STATE <= 15;	// return to default
 				default: STATE <= STATE;
 			endcase
 		end
@@ -369,7 +373,7 @@ always @(posedge CLK) begin
 			LCD_DB 	<= 	LCD_DB;
 			LCD_E		<=		1'b0;
 			RDY		<=		1'b1;
-			STATE <= 100;
+			STATE <= 9;
 		end
 	endcase
 end

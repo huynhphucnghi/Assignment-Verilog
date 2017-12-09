@@ -1,128 +1,91 @@
 module LCD_controller(
-	clk, rst, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy
+	clk, rst, p1win, p2win, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy_command, rdy, state
 );
-	input clk, rst;
-	output LCD_RS, LCD_RW, LCD_EN, rdy;
+	input clk, rst, p1win, p2win;
+	output LCD_RS, LCD_RW, LCD_EN, rdy_command, rdy;
 	output [7:0] LCD_DATA;
+	output [3:0] state;
 	
-	// ASCII code
-	parameter [7:0]
-		khoang_trang = 8'b00100000,		
-		cham_thang = 8'b00100001,		
-		ngoac_kep = 8'b00100010,		
-		hashtag = 8'b00100011,		
-		dola = 8'b00100100,		
-		phan_tram = 8'b00100101,		
-		va = 8'b00100110,		
-		ngoac_don = 8'b00100111,		
-		ngoac_tron_1 = 8'b00101000,		
-		ngoac_tron_2 = 8'b00101001,		
-		sao = 8'b00101010,		
-		cong = 8'b00101011,		
-		phay = 8'b00101100,		
-		tru = 8'b00101101,		
-		cham = 8'b00101110,		
-		chia = 8'b00101111,		
-		_0 = 8'b00110000,		
-		_1 = 8'b00110001,		
-		_2 = 8'b00110010,		
-		_3 = 8'b00110011,		
-		_4 = 8'b00110100,		
-		_5 = 8'b00110101,		
-		_6 = 8'b00110110,		
-		_7 = 8'b00110111,		
-		_8 = 8'b00111000,		
-		_9 = 8'b00111001,		
-		hai_cham = 8'b00111010,		
-		cham_phay = 8'b00111011,		
-		be_hon = 8'b00111100,		
-		bang = 8'b00111101,		
-		lon_hon = 8'b00111110,		
-		cham_hoi = 8'b00111111,		
-		a_cong = 8'b01000000,		
-		_A = 8'b01000001,		
-		_B = 8'b01000010,		
-		_C = 8'b01000011,		
-		_D = 8'b01000100,		
-		_E = 8'b01000101,		
-		_F = 8'b01000110,		
-		_G = 8'b01000111,		
-		_H = 8'b01001000,		
-		_I = 8'b01001001,		
-		_J = 8'b01001010,		
-		_K = 8'b01001011,		
-		_L = 8'b01001100,		
-		_M = 8'b01001101,		
-		_N = 8'b01001110,		
-		_O = 8'b01001111,		
-		_P = 8'b01010000,		
-		_Q = 8'b01010001,		
-		_R = 8'b01010010,		
-		_S = 8'b01010011,		
-		_T = 8'b01010100,		
-		_U = 8'b01010101,		
-		_V = 8'b01010110,		
-		_W = 8'b01010111,		
-		_X = 8'b01011000,		
-		_Y = 8'b01011001,		
-		_Z = 8'b01011010,		
-		ngoac_vuong_1 = 8'b01011011,		
-		slash = 8'b01011100,		
-		ngoac_vuong_2 = 8'b01011101,		
-		mu = 8'b01011110,		
-		gach_chan = 8'b01011111,		
-		huyen = 8'b01100000,		
-		a = 8'b01100001,
-		b = 8'b01100010,
-		c = 8'b01100011,
-		d = 8'b01100100,
-		e = 8'b01100101,
-		f = 8'b01100110,
-		g = 8'b01100111,
-		h = 8'b01101000,
-		i = 8'b01101001,
-		j = 8'b01101010,
-		k = 8'b01101011,
-		l = 8'b01101100,
-		m = 8'b01101101,
-		n = 8'b01101110,
-		o = 8'b01101111,
-		p = 8'b01110000,
-		q = 8'b01110001,
-		r = 8'b01110010,
-		s = 8'b01110011,
-		t = 8'b01110100,
-		u = 8'b01110101,
-		v = 8'b01110110,
-		w = 8'b01110111,
-		x = 8'b01111000,
-		y = 8'b01111001,
-		z = 8'b01111010;
-		
-	parameter [3:0] 
-		clear = 4'b0000,
-		write = 4'b0001,
-		setad = 4'b0011,
-		wait2 = 4'b0100;
-	parameter [9:0] stop_ = 10'b1111111111;
-		
-	wire [11:0] DATA;
+	wire rdy;
+	wire [3:0] op;
+	wire [7:0] data;
 	reg enb = 1;
-	reg [3:0] op = 1;
-	reg [7:0] data;
-	reg [31:0] counter = 0;
+	LCD_executor lcd(clk, enb, 1'b1, op, data, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy);
 	
-	LCD_executor lcd(clk, enb, rst, op, data, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy);
-	LCD_command command(DATA, counter);
+	wire [11:0] DATA;
+	wire rdy_command;
+	reg [3:0] op_command;
+	reg [23:0] data_command;
+	LCD_command command(DATA, rdy_command, op_command, data_command, rdy, state);
+	
+	assign data 		= DATA[7:0];
+	assign op 			= DATA[11:8];
+	
+	reg [2:0] games[2:0][1:0];
+	reg [1:0] sets[1:0];
+	reg [1:0] currentSet = 0;
 	
 	
-	always@(posedge rdy) begin
-		if(counter != 22) begin
-			counter <= counter + 1;
-			data <= DATA[7:0];
-			op <= DATA[11:8];
+	initial begin
+		games[0][0] <= 3'b0;
+		games[0][1] <= 3'b0;
+		games[1][0] <= 3'b0;
+		games[1][1] <= 3'b0;
+		games[2][0] <= 3'b0;
+		games[2][1] <= 3'b0;
+		sets[0] <= 2'b0;
+		sets[1] <= 2'b0;
+		op_command <= 4'd15;
+		data_command <= 4'd0;
+	end
+	
+	always@(posedge rdy_command) begin
+		if(!rst) begin
+			op_command <= 4'd0;
+			data_command <= data_command;
+			games[0][0] <= 3'b0;
+			games[0][1] <= 3'b0;
+			games[1][0] <= 3'b0;
+			games[1][1] <= 3'b0;
+			games[2][0] <= 3'b0;
+			games[2][1] <= 3'b0;
+			sets[0] <= 2'b0;
+			sets[1] <= 2'b0;
 		end
-		else enb <= 0;
+		else if(!p1win) begin
+			if(games[currentSet][0] == 3'd6 || (games[currentSet][0] == 3'd5 && games[currentSet][1] <= 3'd4)) begin
+				currentSet <= currentSet + 2'd1;
+				games[currentSet][0] <= 3'd0;
+				games[currentSet][1] <= 3'd0;
+				sets[0] <= sets[0] + 2'b1;
+				data_command <= {6'b0, sets[0] + 2'd1, 5'b0, games[currentSet][1], 5'b0, games[currentSet][0] + 3'b1};
+				op_command <= 4'd3;
+			end
+			else begin
+				games[currentSet][0] <= games[currentSet][0] + 3'b1;
+				data_command <= games[currentSet][0] + 3'b1;
+				op_command <= 4'd1;
+			end
+		end
+		else if(!p2win) begin
+			if(games[currentSet][1] == 3'd6 || (games[currentSet][1] == 3'd5 && games[currentSet][0] <= 3'd4)) begin
+				currentSet <= currentSet + 2'd1;
+				games[currentSet][0] <= 3'd0;
+				games[currentSet][1] <= 3'd0;
+				sets[1] <= sets[1] + 2'b1;
+				data_command <= {6'b0, sets[1] + 2'b1, 5'b0, games[currentSet][1] + 3'b1, 5'b0, games[currentSet][0]};
+				op_command <= 4'd4;
+			end
+			else begin
+				games[currentSet][1] <= games[currentSet][1] + 3'b1;
+				data_command <= games[currentSet][1] + 3'b1;
+				op_command <= 4'd2;
+			end
+		end
+		else begin
+			op_command <= 4'd15;
+			data_command <= data_command;
+		end
 	end
 	
 

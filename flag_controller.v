@@ -23,13 +23,22 @@ module flag_controller(
 	
 	// For 50Mhz clock => 1 cycle = 20ns 
 	parameter [31:0] t_40ns 	= 2;
-	parameter [31:0] t_250ns 	= 12;
+	parameter [31:0] t_250ns 	= 13;
 	parameter [31:0] t_42us 	= 2016;
 	parameter [31:0] t_100us 	= 4800;
 	parameter [31:0] t_1640us 	= 78720;
 	parameter [31:0] t_4100us 	= 196800;
 	parameter [31:0] t_15000us	= 720000;
 	parameter [31:0] t_2s		= 100000000;
+	
+//	parameter [31:0] t_40ns 	= 1;
+//	parameter [31:0] t_250ns 	= 1;
+//	parameter [31:0] t_42us 	= 1;
+//	parameter [31:0] t_100us 	= 1;
+//	parameter [31:0] t_1640us 	= 1;
+//	parameter [31:0] t_4100us 	= 1;
+//	parameter [31:0] t_15000us	= 1;
+//	parameter [31:0] t_2s		= 100;
 	
 	always @(posedge clk) begin
 		if(flag_rst) begin
