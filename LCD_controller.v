@@ -1,8 +1,11 @@
 module LCD_controller(
-	clk, rst, p1win, p2win, LCD_RS, LCD_RW, LCD_EN, LCD_DATA, rdy_command, rdy, state
+	clk, rst, p1, p2, LCD_RS, LCD_RW, LCD_EN, 
+	p1_point_0, p1_point_1, p2_point_0, p2_point_1,
+	LCD_DATA, rdy_command, rdy, state
 );
-	input clk, rst, p1win, p2win;
+	input clk, rst, p1, p2;
 	output LCD_RS, LCD_RW, LCD_EN, rdy_command, rdy;
+	output [6:0] p1_point_0, p1_point_1, p2_point_0, p2_point_1;
 	output [7:0] LCD_DATA;
 	output [3:0] state;
 	
@@ -39,6 +42,8 @@ module LCD_controller(
 		data_command <= 4'd0;
 	end
 	
+	points_in_game(p1_point_0, p1_point_1, p2_point_0, p2_point_1, p1win, p2win, p1, p2, rst, rdy_command);
+	
 	always@(posedge rdy_command) begin
 		if(!rst) begin
 			op_command <= 4'd0;
@@ -52,7 +57,7 @@ module LCD_controller(
 			sets[0] <= 2'b0;
 			sets[1] <= 2'b0;
 		end
-		else if(!p1win) begin
+		else if(p1win) begin
 			if(games[currentSet][0] == 3'd6 || (games[currentSet][0] == 3'd5 && games[currentSet][1] <= 3'd4)) begin
 				currentSet <= currentSet + 2'd1;
 				games[currentSet][0] <= 3'd0;
@@ -67,7 +72,7 @@ module LCD_controller(
 				op_command <= 4'd1;
 			end
 		end
-		else if(!p2win) begin
+		else if(p2win) begin
 			if(games[currentSet][1] == 3'd6 || (games[currentSet][1] == 3'd5 && games[currentSet][0] <= 3'd4)) begin
 				currentSet <= currentSet + 2'd1;
 				games[currentSet][0] <= 3'd0;
