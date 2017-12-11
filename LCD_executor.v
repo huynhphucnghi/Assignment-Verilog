@@ -20,9 +20,9 @@ reg LCD_RS;
 reg LCD_E=0;
 
 // Set flags
-wire flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s;
+wire flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s, flag_250ms;
 reg flag_rst = 1;
-flag_controller flags(CLK, flag_rst, flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s);
+flag_controller flags(CLK, flag_rst, flag_250ns, flag_42us, flag_100us, flag_1640us, flag_4100us, flag_15000us, flag_2s, flag_250ms);
 
 
 
@@ -87,7 +87,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0; 									
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1; 					
 				end
 			end
@@ -125,7 +125,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0; 					
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1; 					
 				end
 			end
@@ -163,7 +163,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0; 					
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1; 					
 				end
 			end
@@ -201,7 +201,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0; 					
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1; 					
 				end
 			end
@@ -239,7 +239,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0; 					//Start or Continue counting									
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				//Go to next SUBSTATE
+					SUBSTATE		<=	SUBSTATE+1'b1;				//Go to next SUBSTATE
 					flag_rst		<=	1'b1; 					//Stop counting					
 				end
 			end
@@ -277,7 +277,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0;
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1;
 				end
 			end
@@ -315,7 +315,7 @@ always @(posedge CLK) begin
 					flag_rst		<=	1'b0;
 				end
 				else begin 				
-					SUBSTATE		<=	SUBSTATE+1;				
+					SUBSTATE		<=	SUBSTATE+1'b1;				
 					flag_rst		<=	1'b1;
 				end
 			end

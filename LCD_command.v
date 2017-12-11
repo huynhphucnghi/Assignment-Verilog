@@ -1,5 +1,5 @@
 module LCD_command(
-	output reg [11:0] DATA, output reg rdy_command, input [3:0] op, input [23:0] data, input rdy, output reg [3:0] state = 4'b0
+	input [3:0] op, input [31:0] data, input rdy, output reg [11:0] DATA, output reg rdy_command, output reg [3:0] state = 4'b0
 );
 	parameter [7:0]
 		khoang_trang = 8'b00100000,		
@@ -101,118 +101,200 @@ module LCD_command(
 		wait1 = 4'b1111,
 		wait2 = 4'b0100;
 		
-	reg [5:0] substate = 6'b0;
-	wire [7:0] encodedData[2:0];
+
+	reg [5:0] ss = 6'b0;			// substate
+	wire [7:0] encodedData[3:0];
 	
 	assign encodedData[0] = data[7:0] + 8'h30;
 	assign encodedData[1] = data[15:8] + 8'h30;
 	assign encodedData[2] = data[23:16] + 8'h30;
+	assign encodedData[3] = data[31:24];
 
 	always@(posedge rdy) begin
 		case(state)
 		// Reset the Game
 		0: begin
 			rdy_command <= 1'b0;
-			case(substate)
-			0:		begin substate <= substate + 6'b1; DATA 	<= {clear, 8'd00};			end	
-			1:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd04};			end	
-			2: 	begin substate <= substate + 6'b1; DATA 	<= {write, _W};				end
-			3: 	begin substate <= substate + 6'b1; DATA 	<= {write, e};					end		
-			4: 	begin substate <= substate + 6'b1; DATA 	<= {write, l};					end
-			5: 	begin substate <= substate + 6'b1; DATA 	<= {write, c};					end
-			6: 	begin substate <= substate + 6'b1; DATA 	<= {write, o};					end
-			7: 	begin substate <= substate + 6'b1; DATA 	<= {write, m};					end
-			8: 	begin substate <= substate + 6'b1; DATA 	<= {write, e};					end
-			9: 	begin substate <= substate + 6'b1; DATA 	<= {write, cham_thang};		end
-			10: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd43};			end
-			11: 	begin substate <= substate + 6'b1; DATA 	<= {write, _L};				end
-			12: 	begin substate <= substate + 6'b1; DATA 	<= {write, e};					end
-			13: 	begin substate <= substate + 6'b1; DATA 	<= {write, t};					end
-			14: 	begin substate <= substate + 6'b1; DATA 	<= {write, ngoac_don};		end
-			15: 	begin substate <= substate + 6'b1; DATA 	<= {write, s};					end
-			16: 	begin substate <= substate + 6'b1; DATA 	<= {write, khoang_trang};	end
-			17: 	begin substate <= substate + 6'b1; DATA 	<= {write, p};					end
-			18: 	begin substate <= substate + 6'b1; DATA 	<= {write, l};					end
-			19: 	begin substate <= substate + 6'b1; DATA 	<= {write, a};					end
-			20: 	begin substate <= substate + 6'b1; DATA 	<= {write, y};					end
-			21: 	begin substate <= substate + 6'b1; DATA 	<= {wait2, 8'd00};			end
-			22: 	begin substate <= substate + 6'b1; DATA 	<= {clear, 8'd00};			end
-			23: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			24: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd6};				end
-			25: 	begin substate <= substate + 6'b1; DATA 	<= {write, _P};				end
-			26: 	begin substate <= substate + 6'b1; DATA 	<= {write, _1};				end
-			27: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd12};			end
-			28: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			29: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd14};			end
-			30: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			31: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd40};			end
-			32: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			33: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd46};			end
-			34: 	begin substate <= substate + 6'b1; DATA 	<= {write, _P};				end
-			35: 	begin substate <= substate + 6'b1; DATA 	<= {write, _2};				end
-			36: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd52};			end
-			37: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			38: 	begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd54};			end
-			39: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			default: 	begin substate <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end	
+			1:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd04};			end	
+			2: 	begin ss <= ss + 6'b1; DATA 	<= {write, _W};				end
+			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end		
+			4: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, c};					end
+			6: 	begin ss <= ss + 6'b1; DATA 	<= {write, o};					end
+			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, m};					end
+			8: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, cham_thang};		end
+			10: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd43};			end
+			11: 	begin ss <= ss + 6'b1; DATA 	<= {write, _L};				end
+			12: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			13: 	begin ss <= ss + 6'b1; DATA 	<= {write, t};					end
+			14: 	begin ss <= ss + 6'b1; DATA 	<= {write, ngoac_don};		end
+			15: 	begin ss <= ss + 6'b1; DATA 	<= {write, s};					end
+			16: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			17: 	begin ss <= ss + 6'b1; DATA 	<= {write, p};					end
+			18: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			19: 	begin ss <= ss + 6'b1; DATA 	<= {write, a};					end
+			20: 	begin ss <= ss + 6'b1; DATA 	<= {write, y};					end
+			21: 	begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			22: 	begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end
+			23: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			24: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd6};				end
+			25: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			26: 	begin ss <= ss + 6'b1; DATA 	<= {write, _1};				end
+			27: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd12};			end
+			28: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			29: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end
+			30: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			31: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd40};			end
+			32: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			33: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd46};			end
+			34: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			35: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
+			36: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
+			37: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			38: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			39: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			default: 	begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
 		
 		// 1 game for player1
 		1: begin
 			rdy_command <= 1'b0;
-			case(substate)
-			0:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd14};			end	
-			1: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[0]};end
-			2:		begin substate <= substate + 6'b1; DATA 	<= {wait2, 8'd00};			end
-			default:		begin substate <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
 		// 1 game for player2
 		2: begin
 			rdy_command <= 1'b0;
-			case(substate)
-			0:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd54};			end	
-			1: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[0]};end
-			2:		begin substate <= substate + 6'b1; DATA 	<= {wait2, 8'd00};			end
-			default:		begin substate <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
 		
 		// 1 set for player1
 		3: begin
 			rdy_command <= 1'b0;
-			case(substate)
-			0:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd14};			end	
-			1: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			2:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd54};			end
-			3: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			4:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd0};				end
-			5: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[0]};end
-			6:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd40};			end
-			7: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[1]};end
-			8:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd12};			end
-			9: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[2]};end
-			10:		begin substate <= substate + 6'b1; DATA 	<= {wait2, 8'd00};		end
-			default:		begin substate <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			4:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3]};end
+			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			6:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3] + 8'd40};	end
+			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[1]};end
+			8:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd12};			end
+			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[2]};end
+			10:		begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};		end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
 		// 1 set for player2
 		4: begin
 			rdy_command <= 1'b0;
-			case(substate)
-			0:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd14};			end	
-			1: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			2:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd54};			end
-			3: 	begin substate <= substate + 6'b1; DATA 	<= {write, _0};				end
-			4:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd0};				end
-			5: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[0]};end
-			6:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd40};			end
-			7: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[1]};end
-			8:		begin substate <= substate + 6'b1; DATA 	<= {setad, 8'd52};			end
-			9: 	begin substate <= substate + 6'b1; DATA 	<= {write, encodedData[2]};end
-			10:		begin substate <= substate + 6'b1; DATA 	<= {wait2, 8'd00};		end
-			default:		begin substate <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			4:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3]};end
+			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			6:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3] + 8'd40};	end
+			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[1]};end
+			8:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
+			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[2]};end
+			10:		begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};		end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			endcase
+		end
+		
+		// End game, player1 win
+		5: begin
+			rdy_command <= 1'b0;
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			4:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3]};end
+			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			6:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3] + 8'd40};	end
+			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[1]};end
+			8:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd4};				end
+			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			10: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			11: 	begin ss <= ss + 6'b1; DATA 	<= {write, a};					end
+			12: 	begin ss <= ss + 6'b1; DATA 	<= {write, y};					end
+			13: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			14: 	begin ss <= ss + 6'b1; DATA 	<= {write, r};					end
+			15: 	begin ss <= ss + 6'b1; DATA 	<= {write, _1};				end
+			16: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			17: 	begin ss <= ss + 6'b1; DATA 	<= {write, w};					end
+			18: 	begin ss <= ss + 6'b1; DATA 	<= {write, i};					end
+			19: 	begin ss <= ss + 6'b1; DATA 	<= {write, n};					end
+			20: 	begin ss <= ss + 6'b1; DATA 	<= {write, cham_thang};		end
+			21:	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd46};			end
+			22: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			23: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			24: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
+			25: 	begin ss <= ss + 6'b1; DATA 	<= {write, tru};				end
+			26: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[2]};end
+			27:	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
+			28: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			29: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			30: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			31:	begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
+			endcase
+		end
+
+		// End game, player2 win
+		6: begin
+			rdy_command <= 1'b0;
+			case(ss)
+			0:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end	
+			1: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			2:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			4:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3]};end
+			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[0]};end
+			6:		begin ss <= ss + 6'b1; DATA 	<= {setad, encodedData[3] + 8'd40};	end
+			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[1]};end
+			8:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd4};				end
+			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			10: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			11: 	begin ss <= ss + 6'b1; DATA 	<= {write, a};					end
+			12: 	begin ss <= ss + 6'b1; DATA 	<= {write, y};					end
+			13: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			14: 	begin ss <= ss + 6'b1; DATA 	<= {write, r};					end
+			15: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
+			16: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			17: 	begin ss <= ss + 6'b1; DATA 	<= {write, w};					end
+			18: 	begin ss <= ss + 6'b1; DATA 	<= {write, i};					end
+			19: 	begin ss <= ss + 6'b1; DATA 	<= {write, n};					end
+			20: 	begin ss <= ss + 6'b1; DATA 	<= {write, cham_thang};		end
+			21:	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd46};			end
+			22: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			23: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			24: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
+			25: 	begin ss <= ss + 6'b1; DATA 	<= {write, tru};				end
+			26: 	begin ss <= ss + 6'b1; DATA 	<= {write, encodedData[2]};end
+			27:	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
+			28: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			29: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			30: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			31:	begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			default:		begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
 		
@@ -220,13 +302,15 @@ module LCD_command(
 		14: begin
 			rdy_command <= 1'b0;
 			DATA 	<= {wait1, 8'd00};
-			substate <= substate;
+			ss <= ss;
 			case(op)
 				0: state <= 4'd0;
 				1: state <= 4'd1;
 				2: state <= 4'd2;
 				3: state <= 4'd3;
 				4: state <= 4'd4;
+				5: state <= 4'd5;
+				6: state <= 4'd6;
 				default: state <= 4'd15;
 			endcase
 		end
@@ -234,7 +318,7 @@ module LCD_command(
 		default: begin
 			rdy_command <= 1'b1;
 			DATA 	<= {wait1, 8'd00};
-			substate <= substate;
+			ss <= ss;
 			state <= 4'd14;
 		end
 		
