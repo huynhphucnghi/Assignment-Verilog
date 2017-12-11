@@ -61,7 +61,7 @@ module LCD_controller(
 			currentSet <= 2'b0;
 			endGame <= 1'b0;
 		end
-		
+
 		else if(p1win && !endGame) begin	// If player1 win point
 			// If current set end
 			if(games[currentSet][0] == 3'd6 || (games[currentSet][0] == 3'd5 && games[currentSet][1] <= 3'd4)) begin
@@ -86,7 +86,7 @@ module LCD_controller(
 				op_cmd <= 4'd1;
 			end
 		end
-		
+
 		else if(p2win && !endGame) begin	// If player2 win point
 			// If current set end
 			if(games[currentSet][1] == 3'd6 || (games[currentSet][1] == 3'd5 && games[currentSet][0] <= 3'd4)) begin
