@@ -97,18 +97,25 @@ module LCD_command(
 	parameter [3:0] 
 		clear = 4'b0000,
 		write = 4'b0001,
+		setcg = 4'b0010,
 		setad = 4'b0011,
 		wait1 = 4'b1111,
 		wait2 = 4'b0100;
 		
 
-	reg [5:0] ss = 6'b0;			// substate
+	reg [6:0] ss = 6'b0;			// substate
+	reg [3:0] sss = 4'b0;		// subsubstate
 	wire [7:0] encodedData[3:0];
 	
 	assign encodedData[0] = data[7:0] + 8'h30;
 	assign encodedData[1] = data[15:8] + 8'h30;
 	assign encodedData[2] = data[23:16] + 8'h30;
 	assign encodedData[3] = data[31:24];
+	
+	reg en = 1'b1;
+	wire en_out;
+	wire [11:0] DATA_cg;
+	CGRAM_generator cg(DATA_cg,en_out,en,rdy);
 
 	always@(posedge rdy) begin
 		case(state)
@@ -116,46 +123,59 @@ module LCD_command(
 		0: begin
 			rdy_command <= 1'b0;
 			case(ss)
-			0:		begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end	
-			1:		begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd04};			end	
-			2: 	begin ss <= ss + 6'b1; DATA 	<= {write, _W};				end
-			3: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end		
-			4: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
-			5: 	begin ss <= ss + 6'b1; DATA 	<= {write, c};					end
-			6: 	begin ss <= ss + 6'b1; DATA 	<= {write, o};					end
-			7: 	begin ss <= ss + 6'b1; DATA 	<= {write, m};					end
-			8: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
-			9: 	begin ss <= ss + 6'b1; DATA 	<= {write, cham_thang};		end
-			10: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd43};			end
-			11: 	begin ss <= ss + 6'b1; DATA 	<= {write, _L};				end
-			12: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
-			13: 	begin ss <= ss + 6'b1; DATA 	<= {write, t};					end
-			14: 	begin ss <= ss + 6'b1; DATA 	<= {write, ngoac_don};		end
-			15: 	begin ss <= ss + 6'b1; DATA 	<= {write, s};					end
-			16: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
-			17: 	begin ss <= ss + 6'b1; DATA 	<= {write, p};					end
-			18: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
-			19: 	begin ss <= ss + 6'b1; DATA 	<= {write, a};					end
-			20: 	begin ss <= ss + 6'b1; DATA 	<= {write, y};					end
-			21: 	begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
-			22: 	begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end
-			23: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
-			24: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd6};				end
-			25: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
-			26: 	begin ss <= ss + 6'b1; DATA 	<= {write, _1};				end
-			27: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd12};			end
-			28: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
-			29: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end
-			30: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
-			31: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd40};			end
-			32: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
-			33: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd46};			end
-			34: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
-			35: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
-			36: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
-			37: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
-			38: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
-			39: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			0:		begin 
+					en <= 1'b1;
+					if (en_out == 1'b1) begin ss <= 2; en <= 1'b0; end
+					else begin DATA <= DATA_cg; ss <= 0; end
+					end
+			1	:	ss <= 2;
+			2	:	begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end	
+			3	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd04};			end	
+			4	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _W};				end		
+			5	: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			6	: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			7	: 	begin ss <= ss + 6'b1; DATA 	<= {write, c};					end
+			8	:	begin ss <= ss + 6'b1; DATA 	<= {write, o};					end
+			9	: 	begin ss <= ss + 6'b1; DATA 	<= {write, m};					end
+			10	: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			11	: 	begin ss <= ss + 6'b1; DATA 	<= {write, cham_thang};		end
+			12	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd40};			end
+			13	: 	begin ss <= ss + 6'b1; DATA 	<= {write, 8'd02};			end
+			14	: 	begin ss <= ss + 6'b1; DATA 	<= {write, 8'd01};			end
+			15	: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			16	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _L};				end		
+			17	: 	begin ss <= ss + 6'b1; DATA 	<= {write, e};					end
+			18	: 	begin ss <= ss + 6'b1; DATA 	<= {write, t};					end
+			19	: 	begin ss <= ss + 6'b1; DATA 	<= {write, ngoac_don};		end
+			20	:	begin ss <= ss + 6'b1; DATA 	<= {write, s};					end
+			21	: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			22	: 	begin ss <= ss + 6'b1; DATA 	<= {write, p};					end
+			23	: 	begin ss <= ss + 6'b1; DATA 	<= {write, l};					end
+			24	: 	begin ss <= ss + 6'b1; DATA 	<= {write, a};					end
+			25	: 	begin ss <= ss + 6'b1; DATA 	<= {write, y};					end
+			26	: 	begin ss <= ss + 6'b1; DATA 	<= {write, khoang_trang};	end
+			27	: 	begin ss <= ss + 6'b1; DATA 	<= {write, 8'd06};			end
+			28	: 	begin ss <= ss + 6'b1; DATA 	<= {write, 8'd07};			end
+			29	: 	begin ss <= ss + 6'b1; DATA 	<= {wait2, 8'd00};			end
+			30	: 	begin ss <= ss + 6'b1; DATA 	<= {clear, 8'd00};			end
+			31	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			32	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd6};				end
+			33	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			34	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _1};				end
+			35	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd12};			end
+			36	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			37	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd14};			end
+			38	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			39	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd40};			end
+			40	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			41	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd46};			end
+			42	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _P};				end
+			43	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _2};				end
+			44	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd52};			end
+			45	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			46	: 	begin ss <= ss + 6'b1; DATA 	<= {setad, 8'd54};			end
+			47	: 	begin ss <= ss + 6'b1; DATA 	<= {write, _0};				end
+			
 			default: 	begin ss <= 6'b0; state <= 4'd15; DATA 	<= {wait1, 8'd00};	end
 			endcase
 		end
