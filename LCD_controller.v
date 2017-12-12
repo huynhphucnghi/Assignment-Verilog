@@ -56,7 +56,7 @@ module LCD_controller(
 	reg endGame;
 	
 	
-	
+
 	points_in_game(p1_point_0, p1_point_1, p2_point_0, p2_point_1, deuce_p1, deuce_p2, p1win, p2win, tie_break, p1_q, p2_q, rst, rdy_cmd);
 	
 	
