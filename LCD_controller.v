@@ -56,8 +56,8 @@ module LCD_controller(
 	reg endGame;
 	
 	
-
-	points_in_game(p1_point_0, p1_point_1, p2_point_0, p2_point_1, deuce_p1, deuce_p2, p1win, p2win, tie_break, p1_q, p2_q, rst, rdy_cmd);
+	
+	points_in_game(p1_point_0, p1_point_1, p2_point_0, p2_point_1, deuce_p1, deuce_p2, p1win, p2win, tie_break, p1_q, p2_q, ivent, rdy_cmd);
 	
 	
 	initial begin
@@ -76,12 +76,12 @@ module LCD_controller(
 		tie_break <= 1'b0;
 	end
 	
-	wire ivent = (hex_data[23:16] == 16'h12); 
-	wire p1_q = (hex_data[23:16] == 16'h1A) || p1;
-	wire p2_q = (hex_data[23:16] == 16'h1E) || p2;
+	wire ivent = (hex_data[23:16] != 16'h12) && rst; 
+	wire p1_q = (hex_data[23:16] != 16'h1A) && p1;
+	wire p2_q = (hex_data[23:16] != 16'h1E) && p2;
 	
 	always@(posedge rdy_cmd) begin
-		if(!rst || ivent) begin								// Reset the game
+		if(!ivent) begin								// Reset the game
 			op_cmd <= 4'd0;
 			data_cmd <= data_cmd;
 			games[0][0] <= 3'b0;
